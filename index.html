@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-HK">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DSE 中史 10分試題速記與背誦平台｜兩宋歷史與香港專題</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Vue 3 CDN -->
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Canvas Confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  
+  <!-- Google Fonts: Noto Serif TC -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700;900&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            serif: ['"Noto Serif TC"', 'Songti TC', 'PMingLiU', 'serif'],
+          },
+          colors: {
+            song: {
+              paper: '#fbf8f1',
+              card: '#f4ebd9',
+              border: '#d8c8b0',
+              ink: '#2c221e',
+              red: '#9e2a2b',
+              gold: '#b8860b',
+              green: '#2d6a4f',
+              muted: '#7a6855'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #f5f0e6;
+      background-image: radial-gradient(#e2d7c3 1px, transparent 1px);
+      background-size: 24px 24px;
+      color: #2c221e;
+    }
+
+    /* Custom Classical Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #ebdcc5; }
+    ::-webkit-scrollbar-thumb { background: #a68a68; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #8c2d19; }
+
+    .seal-stamp {
+      display: inline-block;
+      padding: 2px 8px;
+      border: 2px solid #9e2a2b;
+      color: #9e2a2b;
+      font-weight: 700;
+      border-radius: 4px;
+      transform: rotate(-2deg);
+      box-shadow: 0 0 2px rgba(158, 42, 43, 0.3);
+    }
+
+    .ink-shadow {
+      box-shadow: 0 4px 20px -2px rgba(44, 34, 30, 0.12);
+    }
+  </style>
+</head>
+<body class="font-serif antialiased min-h-screen flex flex-col selection:bg-song-red selection:text-white">
+
+  <div id="app" class="flex-grow flex flex-col max-w-6xl w-full mx-auto px-3 sm:px-6 py-5">
+    
+    <!-- 頂部頁頭 Banner -->
+    <header class="bg-song-paper border-2 border-song-border rounded-2xl p-4 sm:p-6 mb-5 ink-shadow flex flex-wrap justify-between items-center gap-4 relative overflow-hidden">
+      <div class="absolute -right-6 -bottom-6 opacity-10 text-9xl text-song-ink pointer-events-none select-none">
+        宋
+      </div>
+      
+      <div class="flex items-center space-x-3 sm:space-x-4 z-10">
+        <div class="w-12 h-12 sm:w-14 sm:h-14 bg-song-red text-white rounded-xl flex items-center justify-center text-2xl font-black shadow-md border-2 border-amber-200">
+          史
+        </div>
+        <div>
+          <div class="flex items-center gap-2 flex-wrap">
+            <h1 class="text-xl sm:text-2xl font-black text-song-ink tracking-wide">
+              中史 10分問答題速記平台
+            </h1>
+            <span class="seal-stamp text-xs">兩宋歷史與香港專題</span>
+          </div>
+          <p class="text-xs sm:text-sm text-song-muted mt-0.5">專為香港中學中國歷史科設計｜採分點拆解 • 關鍵詞速記 • 模擬自評</p>
+        </div>
+      </div>
+
+      <!-- 右側控制 -->
+      <div class="flex items-center gap-3 z-10">
+        <button @click="toggleVoiceLang" class="px-3.5 py-2 bg-song-card hover:bg-amber-100 border border-song-border text-song-ink rounded-xl text-xs sm:text-sm font-semibold transition flex items-center gap-1.5 shadow-sm">
+          <i class="fa-solid fa-volume-high text-song-red"></i>
+          <span>{{ speechLangName }}</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- 試題切換與總進度區塊 -->
+    <section class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-5">
+      <button v-for="(q, idx) in questions" :key="q.id" 
+              @click="currentQIndex = idx"
+              :class="currentQIndex === idx ? 'bg-song-ink text-amber-50 border-song-ink shadow-md scale-[1.01]' : 'bg-song-paper text-song-ink border-song-border hover:bg-song-card'"
+              class="p-3.5 border-2 rounded-xl transition text-left flex flex-col justify-between relative overflow-hidden group">
+        <div class="flex justify-between items-start mb-2">
+          <span :class="currentQIndex === idx ? 'bg-amber-100 text-song-ink' : 'bg-song-card text-song-muted'" class="text-[11px] font-bold px-2 py-0.5 rounded">
+            題 {{ idx + 1 }}（10分）
+          </span>
+          <span class="text-xs font-bold" :class="q.mastery >= 80 ? 'text-emerald-500' : 'text-amber-600'">
+            {{ q.mastery }}% 熟練
+          </span>
+        </div>
+        <h3 class="font-bold text-sm sm:text-base leading-snug line-clamp-2 mb-2">
+          {{ q.title }}
+        </h3>
+        <!-- 進度條 -->
+        <div class="w-full bg-slate-200/60 h-1.5 rounded-full overflow-hidden">
+          <div class="bg-song-red h-full transition-all duration-500" :style="{ width: q.mastery + '%' }"></div>
+        </div>
+      </button>
+    </section>
+
+    <!-- 主功能導覽 Tab -->
+    <nav class="bg-song-paper border-2 border-song-border rounded-xl p-1.5 mb-5 ink-shadow flex overflow-x-auto gap-1">
+      <button v-for="tab in tabs" :key="tab.id" @click="activeTab = tab.id"
+              :class="activeTab === tab.id ? 'bg-song-red text-white font-bold shadow' : 'text-song-ink hover:bg-song-card font-medium'"
+              class="px-4 py-2.5 rounded-lg text-xs sm:text-sm transition flex items-center gap-2 whitespace-nowrap">
+        <i :class="tab.icon"></i>
+        <span>{{ tab.name }}</span>
+      </button>
+    </nav>
+
+    <!-- 當前題目名稱標題欄 -->
+    <div class="bg-song-card border border-song-border rounded-xl p-4 mb-5 flex flex-wrap justify-between items-center gap-3">
+      <div class="flex items-center gap-2">
+        <span class="w-2.5 h-6 bg-song-red rounded-full inline-block"></span>
+        <h2 class="text-base sm:text-lg font-black text-song-ink">
+          第 {{ currentQIndex + 1 }} 題：{{ currentQuestion.title }}
+        </h2>
+      </div>
+      <button @click="speakText(currentQuestion.fullText)" class="text-xs bg-song-paper hover:bg-white text-song-ink border border-song-border px-3 py-1.5 rounded-lg font-semibold transition flex items-center gap-1.5">
+        <i class="fa-solid fa-volume-high text-song-red"></i> 聽全文朗讀
+      </button>
+    </div>
+
+    <!-- 模式 1：採分點與關鍵詞拆解 (Scoring Breakdown) -->
+    <main v-if="activeTab === 'breakdown'" class="space-y-4">
+      <div class="bg-song-paper p-5 rounded-2xl border-2 border-song-border ink-shadow space-y-4">
+        <div class="flex justify-between items-center border-b border-song-border pb-3">
+          <span class="text-xs font-bold text-song-red uppercase tracking-wider">
+            <i class="fa-solid fa-sitemap mr-1"></i> 答題採分結構拆解 (全題共 10 分)
+          </span>
+          <span class="text-xs text-song-muted">DSE 試卷關鍵詞已重點高亮</span>
+        </div>
+
+        <!-- 採分點卡片列表 -->
+        <div class="space-y-4">
+          <div v-for="(pt, pIdx) in currentQuestion.points" :key="pIdx" class="bg-song-card p-4 sm:p-5 rounded-xl border border-song-border relative">
+            <div class="flex items-center justify-between mb-2">
+              <span class="px-2.5 py-1 bg-song-red text-white text-xs font-bold rounded-md">
+                採分點 {{ pIdx + 1 }}（建議佔分：{{ pt.mark }}分）
+              </span>
+              <span class="text-xs text-song-muted font-bold">主題：{{ pt.label }}</span>
+            </div>
+            
+            <p class="text-sm sm:text-base leading-relaxed font-serif text-song-ink my-3">
+              <span v-for="(chunk, cIdx) in highlightKeywords(pt.content, currentQuestion.keywords)" :key="cIdx">
+                <mark v-if="chunk.isKeyword" class="bg-amber-200 text-song-red font-bold px-1 py-0.5 rounded border-b-2 border-song-red">
+                  {{ chunk.text }}
+                </mark>
+                <span v-else>{{ chunk.text }}</span>
+              </span>
+            </p>
+
+            <div class="flex flex-wrap gap-1.5 pt-2 border-t border-song-border/60">
+              <span class="text-[11px] text-song-muted font-bold">必答關鍵詞：</span>
+              <span v-for="kw in pt.keywords" :key="kw" class="text-[11px] bg-white border border-song-border text-song-red font-bold px-2 py-0.5 rounded">
+                #{{ kw }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 完整標準答案全文 -->
+        <div class="mt-6 p-4 bg-white rounded-xl border border-song-border space-y-2">
+          <h4 class="text-xs font-bold text-song-ink uppercase tracking-wider flex items-center gap-1">
+            <i class="fa-solid fa-file-pen text-song-red"></i> 官方標準答案全文（背誦範本）：
+          </h4>
+          <p class="text-sm sm:text-base leading-relaxed text-song-ink font-serif tracking-wide bg-song-paper p-4 rounded-lg border border-song-border/50 select-text">
+            {{ currentQuestion.fullText }}
+          </p>
+        </div>
+      </div>
+    </main>
+
+    <!-- 模式 2：分級動態遮擋背誦 (Dynamic Cloze Masking) -->
+    <main v-if="activeTab === 'mask'" class="space-y-4">
+      <div class="bg-song-paper p-5 rounded-2xl border-2 border-song-border ink-shadow space-y-5">
+        <!-- 遮擋比例選擇列 -->
+        <div class="flex flex-wrap items-center justify-between gap-3 bg-song-card p-3 rounded-xl border border-song-border">
+          <div class="flex items-center space-x-2">
+            <i class="fa-solid fa-eye-slash text-song-red"></i>
+            <span class="text-xs sm:text-sm font-bold text-song-ink">選擇遮擋難度：</span>
+          </div>
+          <div class="flex flex-wrap items-center gap-1.5">
+            <button v-for="lvl in [0, 30, 60, 100, 'keywords']" :key="lvl"
+                    @click="maskLevel = lvl"
+                    :class="maskLevel === lvl ? 'bg-song-red text-white font-bold' : 'bg-song-paper text-song-ink hover:bg-amber-100'"
+                    class="px-3 py-1.5 rounded-lg text-xs transition border border-song-border">
+              {{ lvl === 'keywords' ? '🔑 僅保留關鍵詞' : lvl + '%' }}
+            </button>
+          </div>
+        </div>
+
+        <div class="text-xs text-song-muted flex items-center gap-1">
+          <i class="fa-regular fa-lightbulb text-amber-600"></i>
+          <span>小提示：點擊灰色/模糊框框可獨立單個解鎖提示字詞！</span>
+        </div>
+
+        <!-- 遮擋內文面板 -->
+        <div class="bg-white p-6 sm:p-8 rounded-xl border border-song-border leading-loose font-serif text-base sm:text-lg text-song-ink tracking-wide">
+          <template v-for="(item, idx) in maskedTokens" :key="idx">
+            <span v-if="item.isPunctuation">{{ item.char }}</span>
+            <span v-else-if="!item.masked" class="text-song-ink">{{ item.char }}</span>
+            <span v-else 
+                  @click="item.revealed = !item.revealed"
+                  :class="item.revealed ? 'bg-amber-200 text-song-red font-bold border-b-2 border-song-red' : 'bg-stone-300 text-transparent hover:bg-amber-100 hover:text-stone-700'"
+                  class="px-1 mx-[1px] rounded cursor-pointer select-none transition inline-block min-w-[1.2rem] text-center">
+              {{ item.char }}
+            </span>
+          </template>
+        </div>
+
+        <div class="flex justify-between items-center text-xs text-song-muted pt-2">
+          <button @click="resetMaskReveals" class="hover:text-song-red flex items-center gap-1 font-semibold">
+            <i class="fa-solid fa-arrow-rotate-left"></i> 重置所有揭示
+          </button>
+          <span>提示：重複背誦直到能挑戰 100% 遮擋！</span>
+        </div>
+      </div>
+    </main>
+
+    <!-- 模式 3：實時打字默寫測試 (Real-time Typing) -->
+    <main v-if="activeTab === 'typing'" class="space-y-4">
+      <div class="bg-song-paper p-5 sm:p-7 rounded-2xl border-2 border-song-border ink-shadow space-y-5">
+        <div class="flex justify-between items-center border-b border-song-border pb-3">
+          <span class="text-xs font-bold text-song-red uppercase tracking-wider">
+            <i class="fa-solid fa-keyboard mr-1"></i> 實時比對默寫（輸入時自動校對）
+          </span>
+          <span class="text-xs text-song-muted">正確率：<strong class="text-song-red">{{ typingAccuracy }}%</strong></span>
+        </div>
+
+        <!-- 比對對照高亮視窗 -->
+        <div class="bg-song-card p-5 rounded-xl border border-song-border min-h-[120px] font-serif text-base sm:text-lg leading-relaxed flex flex-wrap items-center gap-0.5">
+          <span v-for="(char, i) in currentQuestion.fullText.split('')" :key="i"
+                :class="getTypingCharClass(i)"
+                class="px-0.5 rounded transition inline-block">
+            {{ typedText[i] || '_' }}
+          </span>
+        </div>
+
+        <!-- 打字輸入框 -->
+        <div class="space-y-2">
+          <div class="flex justify-between items-center text-xs">
+            <label class="font-bold text-song-ink">在下方框中輸入文章全文：</label>
+            <div class="space-x-3">
+              <button @click="giveTypingHint" class="text-song-red hover:underline font-bold">
+                <i class="fa-regular fa-lightbulb mr-1"></i>提示下一個字
+              </button>
+              <button @click="showTypingAns = !showTypingAns" class="text-song-muted hover:underline">
+                <i class="fa-solid fa-eye mr-1"></i>{{ showTypingAns ? '隱藏範本' : '顯示原文參考' }}
+              </button>
+            </div>
+          </div>
+
+          <textarea v-model="typedText" placeholder="開始打字默寫..." rows="4" 
+                    class="w-full p-4 border-2 border-song-border rounded-xl bg-white focus:border-song-red focus:ring-0 font-serif text-base text-song-ink resize-none transition shadow-inner">
+          </textarea>
+
+          <div v-if="showTypingAns" class="p-4 bg-amber-50 border border-amber-200 text-song-ink rounded-xl text-sm font-serif">
+            <strong>標準答案全文：</strong> {{ currentQuestion.fullText }}
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between pt-2">
+          <div v-if="isTypingComplete">
+            <span class="inline-flex items-center gap-1.5 text-emerald-700 font-bold text-sm bg-emerald-100 px-3 py-1.5 rounded-lg border border-emerald-300">
+              <i class="fa-solid fa-circle-check"></i> 恭喜！全文完美默寫正確！
+            </span>
+          </div>
+          <div v-else class="text-xs text-song-muted">
+            已輸入 {{ typedText.length }} / {{ currentQuestion.fullText.length }} 字
+          </div>
+
+          <button @click="typedText = ''" class="px-4 py-2 border border-song-border rounded-xl text-xs font-semibold hover:bg-song-card text-song-ink transition">
+            清空重新默寫
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <!-- 模式 4：語段/採分點重組拼圖 (Puzzle Reordering) -->
+    <main v-if="activeTab === 'puzzle'" class="space-y-4">
+      <div class="bg-song-paper p-5 sm:p-7 rounded-2xl border-2 border-song-border ink-shadow space-y-6">
+        <div class="flex justify-between items-center border-b border-song-border pb-3">
+          <span class="text-xs font-bold text-song-red uppercase tracking-wider">
+            <i class="fa-solid fa-puzzle-piece mr-1"></i> 語意邏輯塊重組拼圖
+          </span>
+          <span class="text-xs text-song-muted">點擊下方詞塊組合出正確的答題順序</span>
+        </div>
+
+        <!-- 已選擇的放置區 -->
+        <div class="min-h-[140px] p-4 bg-song-card rounded-xl border-2 border-dashed border-song-border space-y-2">
+          <div class="text-xs text-song-muted font-bold mb-2">已排列的句子順序：</div>
+          <p v-if="selectedBlocks.length === 0" class="text-song-muted text-sm italic text-center py-6">
+            點擊下方「待選語塊」進行拼湊...
+          </p>
+
+          <div v-for="(b, idx) in selectedBlocks" :key="'sel-'+idx"
+               @click="deselectBlock(idx)"
+               class="p-3 bg-white border border-song-border rounded-lg shadow-sm hover:border-song-red transition cursor-pointer flex items-start gap-2 group">
+            <span class="w-5 h-5 bg-song-red text-white text-xs rounded-full flex items-center justify-center font-bold flex-shrink-0 mt-0.5">
+              {{ idx + 1 }}
+            </span>
+            <span class="font-serif text-sm text-song-ink flex-grow">{{ b }}</span>
+            <i class="fa-solid fa-xmark text-xs text-song-muted group-hover:text-song-red"></i>
+          </div>
+        </div>
+
+        <!-- 待選區塊 -->
+        <div class="space-y-2">
+          <div class="text-xs font-bold text-song-ink">待選語塊（點擊加入上面）：</div>
+          <div class="space-y-2">
+            <button v-for="(b, idx) in availableBlocks" :key="'avail-'+idx"
+                    @click="selectBlock(idx)"
+                    class="w-full p-3 bg-white hover:bg-amber-100 border border-song-border rounded-lg text-left font-serif text-sm text-song-ink transition shadow-sm active:scale-[0.99]">
+              {{ b }}
+            </button>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between pt-3 border-t border-song-border">
+          <button @click="resetPuzzle" class="text-xs text-song-muted hover:text-song-ink flex items-center gap-1 font-semibold">
+            <i class="fa-solid fa-arrow-rotate-left"></i> 重置打亂語塊
+          </button>
+
+          <div v-if="isPuzzleCorrect" class="text-emerald-700 font-bold text-sm bg-emerald-100 px-3 py-1.5 rounded-lg border border-emerald-300 flex items-center gap-1">
+            <i class="fa-solid fa-circle-check"></i> 邏輯順序完全正確！
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- 模式 5：10分答題模擬與自評表 (10-Mark Exam Simulator & Rubric) -->
+    <main v-if="activeTab === 'exam'" class="space-y-4">
+      <div class="bg-song-paper p-5 sm:p-7 rounded-2xl border-2 border-song-border ink-shadow space-y-6">
+        <!-- 倒計時 Header -->
+        <div class="flex flex-wrap justify-between items-center bg-song-ink text-amber-50 p-4 rounded-xl gap-3">
+          <div>
+            <span class="text-xs text-amber-300 font-bold uppercase tracking-wider">DSE 10分答題模擬考場</span>
+            <h3 class="text-sm sm:text-base font-bold">限時作答：8 分鐘</h3>
+          </div>
+
+          <div class="flex items-center space-x-3">
+            <div class="text-xl sm:text-2xl font-black font-mono bg-black/40 px-3 py-1 rounded border border-amber-500/40 text-amber-400">
+              {{ formatTimer }}
+            </div>
+            <button @click="toggleExamTimer" class="px-3 py-1.5 bg-song-red hover:bg-red-800 text-white rounded-lg text-xs font-bold transition">
+              {{ timerRunning ? '暫停計時' : '開始計時' }}
+            </button>
+          </div>
+        </div>
+
+        <!-- 試卷答題區 -->
+        <div class="space-y-2">
+          <label class="text-sm font-bold text-song-ink flex justify-between">
+            <span>請在下方作答（建議字數：120-180字）：</span>
+            <span class="text-xs text-song-muted">試卷配分：10 分</span>
+          </label>
+          <textarea v-model="examAnswer" placeholder="在此輸入你的完整作答內容..." rows="6"
+                    class="w-full p-4 border-2 border-song-border rounded-xl bg-white focus:border-song-red font-serif text-base text-song-ink resize-y shadow-inner">
+          </textarea>
+        </div>
+
+        <div class="flex justify-end">
+          <button @click="submitExam" class="px-6 py-2.5 bg-song-red hover:bg-red-800 text-white font-bold rounded-xl text-sm transition shadow-md flex items-center gap-2">
+            <i class="fa-solid fa-clipboard-check"></i> 提交作答並開啟「10分對照自評表」
+          </button>
+        </div>
+
+        <!-- 自評對照表 Rubric Modal / Section -->
+        <div v-if="showExamRubric" class="mt-6 p-5 sm:p-6 bg-white rounded-2xl border-2 border-song-red space-y-5 animate-fade-in">
+          <div class="flex justify-between items-center border-b border-song-border pb-3">
+            <h3 class="text-base font-black text-song-red flex items-center gap-2">
+              <i class="fa-solid fa-ribbon"></i> 10分得分評估與關鍵詞對照表
+            </h3>
+            <span class="text-xs bg-amber-100 text-song-ink px-2.5 py-1 rounded font-bold">
+              自評得分：<strong class="text-song-red text-base">{{ calculatedSelfMark }}</strong> / 10 分
+            </span>
+          </div>
+
+          <!-- 自動檢測到的關鍵詞 -->
+          <div class="p-4 bg-song-card rounded-xl border border-song-border space-y-2">
+            <div class="text-xs font-bold text-song-ink">系統自動比對關鍵詞命中情況：</div>
+            <div class="flex flex-wrap gap-1.5">
+              <span v-for="kw in currentQuestion.keywords" :key="kw"
+                    :class="checkKeywordInAnswer(kw) ? 'bg-emerald-100 text-emerald-800 border-emerald-300 font-bold' : 'bg-slate-100 text-slate-400 border-slate-200'"
+                    class="px-2 py-0.5 border text-xs rounded flex items-center gap-1">
+                <i :class="checkKeywordInAnswer(kw) ? 'fa-circle-check text-emerald-600' : 'fa-circle-xmark text-slate-400'" class="fa-solid"></i>
+                {{ kw }}
+              </span>
+            </div>
+          </div>
+
+          <!-- 採分點逐條對照勾選 -->
+          <div class="space-y-3">
+            <div class="text-xs font-bold text-song-ink">請對照試卷評分標準，手動勾選你已包含的採分點：</div>
+            
+            <div v-for="(rub, rIdx) in currentQuestion.rubric" :key="rIdx" class="p-3.5 border rounded-xl flex items-start space-x-3 bg-song-paper">
+              <input type="checkbox" v-model="rubricChecked[rIdx]" :id="'rub-'+rIdx" class="mt-1 w-4 h-4 accent-song-red rounded cursor-pointer">
+              <label :for="'rub-'+rIdx" class="text-xs sm:text-sm text-song-ink font-serif leading-relaxed cursor-pointer flex-grow">
+                <div class="font-bold text-song-red mb-0.5">
+                  【最高可得 {{ rub.mark }} 分】{{ rub.criteria }}
+                </div>
+                <div class="text-song-muted text-xs">應涵蓋要素：{{ rub.detail }}</div>
+              </label>
+            </div>
+          </div>
+
+          <!-- 完成與更新熟練度按鈕 -->
+          <div class="pt-2 flex justify-between items-center border-t border-song-border">
+            <span class="text-xs text-song-muted">自評結果將自動更新至此題的熟練度進度條。</span>
+            <button @click="saveSelfEvaluation" class="px-5 py-2 bg-song-ink text-amber-50 hover:bg-black font-bold rounded-xl text-xs sm:text-sm transition">
+              儲存評分並更新學習進度
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </main>
+
+  </div>
+
+  <!-- Vue 3 App Logic -->
+  <script>
+    const { createApp, ref, computed, watch, onMounted } = Vue;
+
+    // 試題資料庫 (完整收錄使用者提供的 4 道 10 分試題)
+    const QUESTIONS_DATA = [
+      {
+        id: 1,
+        title: '強榦弱枝政策的背景和目的',
+        fullText: '強榦弱枝政策的「榦」是「幹」的本字，指樹木的主幹，用以比喻中央。「枝」指樹木末枝，用來形容地方。因此，強榦弱枝的意思是加強中央實權，削弱地方勢力。唐代中期起，藩鎮握有行政、軍事、財政大權，造成割據局面。為了根治問題，宋太祖分割、收回地方的軍權、政權和財權，把一切權力集中在中央手中。',
+        mastery: 0,
+        keywords: ['榦', '幹', '主幹', '中央', '末枝', '地方', '強榦弱枝', '藩鎮', '割據', '宋太祖', '軍權', '政權', '財權'],
+        points: [
+          {
+            mark: 2,
+            label: '概念與字義釋義',
+            content: '強榦弱枝政策的「榦」是「幹」的本字，指樹木的主幹，用以比喻中央。「枝」指樹木末枝，用來形容地方。因此，強榦弱枝的意思是加強中央實權，削弱地方勢力。',
+            keywords: ['榦/幹', '主幹比喻中央', '末枝形容地方', '加強中央削弱地方']
+          },
+          {
+            mark: 3,
+            label: '歷史背景（藩鎮割據）',
+            content: '唐代中期起，藩鎮握有行政、軍事、財政大權，造成割據局面。',
+            keywords: ['唐代中期', '藩鎮', '行政/軍事/財政大權', '割據局面']
+          },
+          {
+            mark: 5,
+            label: '政策措施與最終目的',
+            content: '為了根治問題，宋太祖分割、收回地方的軍權、政權和財權，把一切權力集中在中央手中。',
+            keywords: ['宋太祖', '根治問題', '分割收回', '軍權/政權/財權', '集中中央']
+          }
+        ],
+        blocks: [
+          '強榦弱枝政策的「榦」是「幹」的本字，指樹木的主幹，用以比喻中央。「枝」指樹木末枝，用來形容地方。',
+          '因此，強榦弱枝的意思是加強中央實權，削弱地方勢力。',
+          '唐代中期起，藩鎮握有行政、軍事、財政大權，造成割據局面。',
+          '為了根治問題，宋太祖分割、收回地方的軍權、政權和財權，把一切權力集中在中央手中。'
+        ],
+        rubric: [
+          { criteria: '第一採分點：解釋「榦」與「枝」字義，說明強中央弱地方之定義', mark: 2, detail: '提及幹=主幹=中央，枝=末枝=地方' },
+          { criteria: '第二採分點：指出唐中葉以來藩鎮掌控三權導致割據局面的歷史背景', mark: 3, detail: '提及唐中葉、藩鎮兼攬行政軍事財政、割據' },
+          { criteria: '第三採分點：說明宋太祖收回地方軍政財三權集權中央之目的與措施', mark: 5, detail: '提及宋太祖、分割收回軍權政權財權、權力集於中央' }
+        ]
+      },
+      {
+        id: 2,
+        title: '新舊黨爭的概況',
+        fullText: '神宗支持王安石變法，舊黨失勢。神宗死後，哲宗年幼繼位，高太后起用舊黨，廢除全部新法，新黨盡被斥逐，史稱「元祐更化」。此後兩黨勢成水火，任何一黨得勢，即用盡方法向對方報復。徽宗崇寧以後，新黨蔡京掌權，他把司馬光為首的舊黨官員列入「奸黨人碑」。舊黨自此沒落，新舊黨爭結束。',
+        mastery: 0,
+        keywords: ['神宗', '王安石變法', '舊黨失勢', '哲宗', '高太后', '廢除新法', '元祐更化', '勢成水火', '報復', '徽宗', '蔡京', '司馬光', '奸黨人碑'],
+        points: [
+          {
+            mark: 3,
+            label: '變法起因與元祐更化',
+            content: '神宗支持王安石變法，舊黨失勢。神宗死後，哲宗年幼繼位，高太后起用舊黨，廢除全部新法，新黨盡被斥逐，史稱「元祐更化」。',
+            keywords: ['神宗支持變法', '高太后起用舊黨', '廢除新法', '元祐更化']
+          },
+          {
+            mark: 3,
+            label: '兩黨對立與惡性報復',
+            content: '此後兩黨勢成水火，任何一黨得勢，即用盡方法向對方報復。',
+            keywords: ['勢成水火', '得勢報復', '惡性循環']
+          },
+          {
+            mark: 4,
+            label: '蔡京掌權與奸黨人碑（黨爭結束）',
+            content: '徽宗崇寧以後，新黨蔡京掌權，他把司馬光為首的舊黨官員列入「奸黨人碑」。舊黨自此沒落，新舊黨爭結束。',
+            keywords: ['徽宗崇寧', '蔡京掌權', '司馬光', '奸黨人碑', '舊黨沒落結束']
+          }
+        ],
+        blocks: [
+          '神宗支持王安石變法，舊黨失勢。',
+          '神宗死後，哲宗年幼繼位，高太后起用舊黨，廢除全部新法，新黨盡被斥逐，史稱「元祐更化」。',
+          '此後兩黨勢成水火，任何一黨得勢，即用盡方法向對方報復。',
+          '徽宗崇寧以後，新黨蔡京掌權，他把司馬光為首的舊黨官員列入「奸黨人碑」。',
+          '舊黨自此沒落，新舊黨爭結束。'
+        ],
+        rubric: [
+          { criteria: '第一採分點：說明神宗變法及哲宗朝「元祐更化」廢新法之背景', mark: 3, detail: '提及王安石變法、高太后、元祐更化' },
+          { criteria: '第二採分點：描述兩黨勢成水火、相互報復的惡鬥狀況', mark: 3, detail: '提及兩黨勢成水火、得勢互相報復' },
+          { criteria: '第三採分點：說明蔡京立「奸黨人碑」打壓舊黨致黨爭結束', mark: 4, detail: '提及徽宗崇寧、蔡京、司馬光、奸黨人碑、舊黨沒落' }
+        ]
+      },
+      {
+        id: 3,
+        title: '南宋市舶司制度及其職責',
+        fullText: '南宋沿用北宋市舶司制度，在東南沿海的臨安、江陰、明州、泉州、廣州等七個港口設立市舶司，專責管理海外貿易。市舶司的主要職責包括︰檢查出、入口的商船，以防走私；向出國商船發出許可證；對入口貨品抽取關稅；招待來華貿易的蕃商；設立供蕃商居住的「蕃坊」等。',
+        mastery: 0,
+        keywords: ['南宋', '市舶司', '臨安', '江陰', '明州', '泉州', '廣州', '海外貿易', '檢查商船', '防走私', '許可證', '關稅', '蕃商', '蕃坊'],
+        points: [
+          {
+            mark: 3,
+            label: '制度沿革與設置地點',
+            content: '南宋沿用北宋市舶司制度，在東南沿海的臨安、江陰、明州、泉州、廣州等七個港口設立市舶司，專責管理海外貿易。',
+            keywords: ['沿用北宋', '臨安/江陰/明州/泉州/廣州等七港', '專責海外貿易']
+          },
+          {
+            mark: 4,
+            label: '核心管理職責（檢查、證件與徵稅）',
+            content: '市舶司的主要職責包括︰檢查出、入口的商船，以防走私；向出國商船發出許可證；對入口貨品抽取關稅；',
+            keywords: ['檢查商船防走私', '發出許可證', '抽取關稅']
+          },
+          {
+            mark: 3,
+            label: '外商待遇職責（招待與蕃坊）',
+            content: '招待來華貿易的蕃商；設立供蕃商居住的「蕃坊」等。',
+            keywords: ['招待蕃商', '設立蕃坊']
+          }
+        ],
+        blocks: [
+          '南宋沿用北宋市舶司制度，在東南沿海的臨安、江陰、明州、泉州、廣州等七個港口設立市舶司，專責管理海外貿易。',
+          '市舶司的主要職責包括︰檢查出、入口的商船，以防走私；',
+          '向出國商船發出許可證；對入口貨品抽取關稅；',
+          '招待來華貿易的蕃商；設立供蕃商居住的「蕃坊」等。'
+        ],
+        rubric: [
+          { criteria: '第一採分點：交代市舶司背景與設立地點（七大港口）', mark: 3, detail: '提及沿用北宋、東南沿海七港口（如臨安/泉州/廣州等）' },
+          { criteria: '第二採分點：詳細說明監管貿易職責（防走私、發許可證、抽關稅）', mark: 4, detail: '提及檢查商船防走私、發許可證、抽取關稅' },
+          { criteria: '第三採分點：說明接待外商及設立「蕃坊」之職責', mark: 3, detail: '提及招待蕃商、設立蕃坊' }
+        ]
+      },
+      {
+        id: 4,
+        title: '兩宋時期中原人士南來香港的概況',
+        fullText: '新界原居民鄧氏的祖先，是最早遷入香港的中原人士。北宋熙寧年間，江西人鄧符協到廣東任官，曾遊經今元朗錦田一帶，很喜愛當地景色，便在辭官後與族人移居錦田，廣置田園，修築圍村。北宋末年起，侯氏、彭氏等為了避開中原戰亂，也遷入香港地區。鄧氏、侯氏、彭氏、廖氏、文氏合稱「新界五大族」，他們開墾荒地，從事農耕，對新界的開發貢獻很大。',
+        mastery: 0,
+        keywords: ['鄧氏', '鄧符協', '北宋熙寧', '錦田', '圍村', '戰亂', '侯氏', '彭氏', '廖氏', '文氏', '新界五大族', '開墾荒地', '農耕'],
+        points: [
+          {
+            mark: 4,
+            label: '鄧氏遷入與錦田建設',
+            content: '新界原居民鄧氏的祖先，是最早遷入香港的中原人士。北宋熙寧年間，江西人鄧符協到廣東任官，曾遊經今元朗錦田一帶，很喜愛當地景色，便在辭官後與族人移居錦田，廣置田園，修築圍村。',
+            keywords: ['鄧氏最先遷入', '鄧符協', '北宋熙寧', '錦田', '置田園築圍村']
+          },
+          {
+            mark: 3,
+            label: '北宋末年避亂南遷',
+            content: '北宋末年起，侯氏、彭氏等為了避開中原戰亂，也遷入香港地區。',
+            keywords: ['北宋末年', '侯氏/彭氏', '避開中原戰亂']
+          },
+          {
+            mark: 3,
+            label: '新界五大族及其歷史貢獻',
+            content: '鄧氏、侯氏、彭氏、廖氏、文氏合稱「新界五大族」，他們開墾荒地，從事農耕，對新界的開發貢獻很大。',
+            keywords: ['鄧/侯/彭/廖/文', '新界五大族', '開墾荒地農耕', '開發貢獻大']
+          }
+        ],
+        blocks: [
+          '新界原居民鄧氏的祖先，是最早遷入香港的中原人士。',
+          '北宋熙寧年間，江西人鄧符協到廣東任官，曾遊經今元朗錦田一帶，很喜愛當地景色，便在辭官後與族人移居錦田，廣置田園，修築圍村。',
+          '北宋末年起，侯氏、彭氏等為了避開中原戰亂，也遷入香港地區。',
+          '鄧氏、侯氏、彭氏、廖氏、文氏合稱「新界五大族」，他們開墾荒地，從事農耕，對新界的開發貢獻很大。'
+        ],
+        rubric: [
+          { criteria: '第一採分點：詳細說明鄧氏祖先（鄧符協）遷定錦田及置田築圍經過', mark: 4, detail: '提及鄧氏最早、鄧符協、北宋熙寧、錦田、圍村' },
+          { criteria: '第二採分點：說明北宋末年侯氏、彭氏等因避戰亂遷港背景', mark: 3, detail: '提及北宋末年、侯氏彭氏、避中原戰亂' },
+          { criteria: '第三採分點：列舉「新界五大族」名稱及其墾荒農耕之貢獻', mark: 3, detail: '提及鄧侯彭廖文五大族、開墾荒地農耕開發貢獻' }
+        ]
+      }
+    ];
+
+    createApp({
+      setup() {
+        const questions = ref(QUESTIONS_DATA);
+        const currentQIndex = ref(0);
+        const activeTab = ref('breakdown');
+        const speechLang = ref('zh-HK');
+
+        const maskLevel = ref(30);
+        const typedText = ref('');
+        const showTypingAns = ref(false);
+
+        const availableBlocks = ref([]);
+        const selectedBlocks = ref([]);
+
+        // Exam Simulator
+        const timerSeconds = ref(480); // 8 minutes
+        const timerRunning = ref(false);
+        let timerInterval = null;
+        const examAnswer = ref('');
+        const showExamRubric = ref(false);
+        const rubricChecked = ref([]);
+
+        const tabs = [
+          { id: 'breakdown', name: '📌 採分點與關鍵詞', icon: 'fa-solid fa-sitemap' },
+          { id: 'mask', name: '🙈 動態分級遮擋', icon: 'fa-solid fa-eye-slash' },
+          { id: 'typing', name: '✍️ 實時打字默寫', icon: 'fa-solid fa-keyboard' },
+          { id: 'puzzle', name: '🧩 語段邏輯拼圖', icon: 'fa-solid fa-puzzle-piece' },
+          { id: 'exam', name: '📝 10分模擬與自評', icon: 'fa-solid fa-clipboard-check' }
+        ];
+
+        const currentQuestion = computed(() => questions.value[currentQIndex.value]);
+        const speechLangName = computed(() => speechLang.value === 'zh-HK' ? '廣東話朗讀' : '普通話朗讀');
+
+        // 高亮關鍵詞邏輯
+        function highlightKeywords(text, keywords) {
+          if (!keywords || keywords.length === 0) return [{ text, isKeyword: false }];
+          
+          const sortedKw = [...keywords].sort((a, b) => b.length - a.length);
+          const pattern = new RegExp(`(${sortedKw.map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`, 'g');
+          
+          const parts = text.split(pattern);
+          return parts.map(part => ({
+            text: part,
+            isKeyword: keywords.includes(part)
+          }));
+        }
+
+        // 動態遮擋字符拆解
+        const maskedTokens = ref([]);
+
+        function generateMaskedTokens() {
+          const puncts = ['，', '。', '；', '！', '？', '︰', '（', '）', '「', '」', '『', '』'];
+          const text = currentQuestion.value.fullText;
+          const kws = currentQuestion.value.keywords;
+
+          if (maskLevel.value === 'keywords') {
+            // 僅保留關鍵詞，其餘文字遮擋
+            maskedTokens.value = text.split('').map((ch, idx) => {
+              const isP = puncts.includes(ch);
+              // 檢查該字符是否屬於任何關鍵詞
+              const inKw = kws.some(kw => text.indexOf(kw) <= idx && idx < text.indexOf(kw) + kw.length);
+              return {
+                char: ch,
+                isPunctuation: isP,
+                masked: !isP && !inKw,
+                revealed: false
+              };
+            });
+          } else {
+            const ratio = Number(maskLevel.value) / 100;
+            maskedTokens.value = text.split('').map((ch, idx) => {
+              const isP = puncts.includes(ch);
+              const pseudoRand = ((idx * 13 + 7) % 10) / 10;
+              return {
+                char: ch,
+                isPunctuation: isP,
+                masked: !isP && (pseudoRand < ratio),
+                revealed: false
+              };
+            });
+          }
+        }
+
+        watch([maskLevel, currentQIndex, activeTab], () => {
+          if (activeTab.value === 'mask') {
+            generateMaskedTokens();
+          }
+        }, { immediate: true });
+
+        function resetMaskReveals() {
+          generateMaskedTokens();
+        }
+
+        // 打字模式比對
+        function getTypingCharClass(idx) {
+          if (idx >= typedText.value.length) return 'bg-slate-100 text-slate-400';
+          return typedText.value[idx] === currentQuestion.value.fullText[idx]
+            ? 'bg-emerald-100 text-emerald-800 font-bold border-b-2 border-emerald-500'
+            : 'bg-rose-100 text-rose-700 font-bold border-b-2 border-rose-500';
+        }
+
+        const typingAccuracy = computed(() => {
+          if (!typedText.value) return 0;
+          let correct = 0;
+          for (let i = 0; i < typedText.value.length; i++) {
+            if (typedText.value[i] === currentQuestion.value.fullText[i]) correct++;
+          }
+          return Math.round((correct / typedText.value.length) * 100);
+        });
+
+        const isTypingComplete = computed(() => typedText.value === currentQuestion.value.fullText);
+
+        watch(isTypingComplete, (val) => {
+          if (val) {
+            triggerConfetti();
+            currentQuestion.value.mastery = Math.max(currentQuestion.value.mastery, 90);
+          }
+        });
+
+        function giveTypingHint() {
+          const idx = typedText.value.length;
+          if (idx < currentQuestion.value.fullText.length) {
+            typedText.value += currentQuestion.value.fullText[idx];
+          }
+        }
+
+        watch(currentQIndex, () => {
+          typedText.value = '';
+          showTypingAns.value = false;
+          setupPuzzle();
+          resetTimer();
+          showExamRubric.value = false;
+        });
+
+        // 拼圖模式
+        function setupPuzzle() {
+          const blocks = currentQuestion.value.blocks;
+          selectedBlocks.value = [];
+          availableBlocks.value = [...blocks].sort(() => Math.random() - 0.5);
+        }
+
+        watch([currentQIndex, activeTab], () => {
+          if (activeTab.value === 'puzzle') setupPuzzle();
+        }, { immediate: true });
+
+        function selectBlock(idx) {
+          selectedBlocks.value.push(availableBlocks.value.splice(idx, 1)[0]);
+        }
+        function deselectBlock(idx) {
+          availableBlocks.value.push(selectedBlocks.value.splice(idx, 1)[0]);
+        }
+        function resetPuzzle() {
+          setupPuzzle();
+        }
+
+        const isPuzzleCorrect = computed(() => {
+          return selectedBlocks.value.join('') === currentQuestion.value.fullText;
+        });
+
+        watch(isPuzzleCorrect, (val) => {
+          if (val) {
+            triggerConfetti();
+            currentQuestion.value.mastery = Math.max(currentQuestion.value.mastery, 80);
+          }
+        });
+
+        // 模擬考計時與自評表
+        const formatTimer = computed(() => {
+          const m = Math.floor(timerSeconds.value / 60).toString().padStart(2, '0');
+          const s = (timerSeconds.value % 60).toString().padStart(2, '0');
+          return `${m}:${s}`;
+        });
+
+        function toggleExamTimer() {
+          if (timerRunning.value) {
+            clearInterval(timerInterval);
+            timerRunning.value = false;
+          } else {
+            timerRunning.value = true;
+            timerInterval = setInterval(() => {
+              if (timerSeconds.value > 0) timerSeconds.value--;
+              else clearInterval(timerInterval);
+            }, 1000);
+          }
+        }
+
+        function resetTimer() {
+          clearInterval(timerInterval);
+          timerRunning.value = false;
+          timerSeconds.value = 480;
+        }
+
+        function submitExam() {
+          clearInterval(timerInterval);
+          timerRunning.value = false;
+          showExamRubric.value = true;
+          rubricChecked.value = new Array(currentQuestion.value.rubric.length).fill(false);
+          
+          // 自動幫忙勾選含有關鍵詞的 Rubric
+          currentQuestion.value.rubric.forEach((rub, idx) => {
+            const hasKw = currentQuestion.value.keywords.some(kw => examAnswer.value.includes(kw));
+            if (hasKw && examAnswer.value.length > 50) {
+              rubricChecked.value[idx] = true;
+            }
+          });
+        }
+
+        function checkKeywordInAnswer(kw) {
+          return examAnswer.value.includes(kw);
+        }
+
+        const calculatedSelfMark = computed(() => {
+          let score = 0;
+          currentQuestion.value.rubric.forEach((rub, idx) => {
+            if (rubricChecked.value[idx]) {
+              score += rub.mark;
+            }
+          });
+          return score;
+        });
+
+        function saveSelfEvaluation() {
+          const calculatedMastery = Math.min(100, calculatedSelfMark.value * 10);
+          currentQuestion.value.mastery = Math.max(currentQuestion.value.mastery, calculatedMastery);
+          if (calculatedSelfMark.value >= 8) triggerConfetti();
+          alert(`自評得分已儲存！題 ${currentQIndex.value + 1} 熟練度已更新為 ${currentQuestion.value.mastery}%`);
+        }
+
+        // 語音朗讀 TTS
+        function speakText(text) {
+          if (!('speechSynthesis' in window)) {
+            alert('您的瀏覽器不支援 Web Speech 語音朗讀功能');
+            return;
+          }
+          window.speechSynthesis.cancel();
+          const u = new SpeechSynthesisUtterance(text);
+          u.lang = speechLang.value;
+          u.rate = 0.85;
+          window.speechSynthesis.speak(u);
+        }
+
+        function toggleVoiceLang() {
+          speechLang.value = speechLang.value === 'zh-HK' ? 'zh-TW' : 'zh-HK';
+        }
+
+        function triggerConfetti() {
+          if (typeof confetti === 'function') {
+            confetti({ particleCount: 80, spread: 70, origin: { y: 0.7 } });
+          }
+        }
+
+        return {
+          questions,
+          currentQIndex,
+          currentQuestion,
+          activeTab,
+          tabs,
+          speechLang,
+          speechLangName,
+          highlightKeywords,
+
+          // Masking
+          maskLevel,
+          maskedTokens,
+          resetMaskReveals,
+
+          // Typing
+          typedText,
+          showTypingAns,
+          getTypingCharClass,
+          typingAccuracy,
+          isTypingComplete,
+          giveTypingHint,
+
+          // Puzzle
+          availableBlocks,
+          selectedBlocks,
+          selectBlock,
+          deselectBlock,
+          resetPuzzle,
+          isPuzzleCorrect,
+
+          // Exam Simulator
+          timerSeconds,
+          timerRunning,
+          formatTimer,
+          toggleExamTimer,
+          examAnswer,
+          showExamRubric,
+          rubricChecked,
+          submitExam,
+          checkKeywordInAnswer,
+          calculatedSelfMark,
+          saveSelfEvaluation,
+
+          // Speech
+          speakText,
+          toggleVoiceLang
+        };
+      }
+    }).mount('#app');
+  </script>
+</body>
+</html>
